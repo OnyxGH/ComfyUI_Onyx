@@ -1,0 +1,15 @@
+[project]
+name = "comfyui_onyx"
+description = "A collection of useful nodes for ComfyUI."
+version = "0.1.0"
+license = "LICENSE"
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/OnyxGH/ComfyUI_Onyx"
+
+[tool.comfy]
+PublisherId = "Onyx"
+DisplayName = "ComfyUI_Onyx"
+Icon = ""
+  
