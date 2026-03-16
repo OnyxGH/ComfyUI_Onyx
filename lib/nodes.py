@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TypeAlias
 
 NODE_PREFIX = "ONYX"
-BASE_CATEGORY = "Onyx"
+BASE_CATEGORY = "onyx"
 
 NodeNameSource: TypeAlias = str | type[object]
 
