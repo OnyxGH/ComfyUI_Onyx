@@ -6,6 +6,7 @@ from .model.model_merge_nodes import MODEL_MERGE_NODES
 from .model.model_patch_nodes import MODEL_PATCH_NODES
 from .primitive_nodes import PRIMITIVE_NODES
 from .widget_nodes import WIDGET_NODES
+from .util_nodes import UTIL_NODES
 
 NODE_LIST = [
     *BUNDLE_NODES,
@@ -16,4 +17,5 @@ NODE_LIST = [
     *LOADER_NODES,
     *MODEL_PATCH_NODES,
     *MODEL_MERGE_NODES,
+    *UTIL_NODES,
 ]

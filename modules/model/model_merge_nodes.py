@@ -292,16 +292,19 @@ class CheckpointMergeBundle(IO.ComfyNode):
                     tooltip="Determines how to handle the VAE in the output bundle since the merging process only merges the model and CLIP. Choose 'from_bundle' to take the VAE from the same bundle as the non-merged fields, 'load_vae' to load a specific VAE and include it in the output bundle, or 'none' to exclude the VAE from the output bundle.",
                     options=[
                         IO.DynamicCombo.Option("from_bundle", []),
-                        IO.DynamicCombo.Option("load_vae", [
-                            ComboTypeInput(
-                                lambda: VAELoader.vae_list({"video_taes": []}),
-                                "vae_name",
-                                tooltip="The name of the VAE to load and include in the output bundle.",
-                            )
-                        ]),
+                        IO.DynamicCombo.Option(
+                            "load_vae",
+                            [
+                                ComboTypeInput(
+                                    lambda: VAELoader.vae_list({"video_taes": []}),
+                                    "vae_name",
+                                    tooltip="The name of the VAE to load and include in the output bundle.",
+                                )
+                            ],
+                        ),
                         IO.DynamicCombo.Option("none", []),
-                    ]
-                )
+                    ],
+                ),
             ],
             outputs=[
                 IO.Custom("BUNDLE").Output("BUNDLE"),
