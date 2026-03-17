@@ -368,8 +368,12 @@ class UltralyticsDetector(IO.ComfyNode):
         mask_tensor = (mask_tensor >= 0.5).float()
 
         boxes_obj = getattr(result, "boxes", None)
-        class_ids = [int(value) for value in boxes_obj.cls.detach().cpu().tolist()] if boxes_obj is not None and getattr(boxes_obj, "cls", None) is not None else []
-        confs = [float(value) for value in boxes_obj.conf.detach().cpu().tolist()] if boxes_obj is not None and getattr(boxes_obj, "conf", None) is not None else []
+        class_ids = (
+            [int(value) for value in boxes_obj.cls.detach().cpu().tolist()] if boxes_obj is not None and getattr(boxes_obj, "cls", None) is not None else []
+        )
+        confs = (
+            [float(value) for value in boxes_obj.conf.detach().cpu().tolist()] if boxes_obj is not None and getattr(boxes_obj, "conf", None) is not None else []
+        )
 
         segments: list[SEG] = []
         for index, mask in enumerate(mask_tensor):
@@ -390,7 +394,7 @@ class UltralyticsDetector(IO.ComfyNode):
             if bbox[2] - bbox[0] <= drop_size or bbox[3] - bbox[1] <= drop_size:
                 continue
             crop_region = make_crop_region(image.shape[1], image.shape[0], bbox, crop_factor)
-            cropped_mask = mask[crop_region[1]:crop_region[3], crop_region[0]:crop_region[2]]
+            cropped_mask = mask[crop_region[1] : crop_region[3], crop_region[0] : crop_region[2]]
             confidence = confs[index] if index < len(confs) else 1.0
             seg = cls._finalize_seg(image, crop_region, bbox, cropped_mask, confidence, cls._format_label(cls_id, label_lookup))
             if seg is not None:
@@ -505,9 +509,7 @@ class UltralyticsDetector(IO.ComfyNode):
 
             cropped_mask = np.zeros((batch_size, crop_h, crop_w), dtype=np.float32)
             cropped_mask[sample_index] = mask_np
-            batched_segments.append(
-                SEG(cropped_image, cropped_mask, seg.confidence, seg.crop_region, seg.bbox, seg.label, seg.control_net_wrapper)
-            )
+            batched_segments.append(SEG(cropped_image, cropped_mask, seg.confidence, seg.crop_region, seg.bbox, seg.label, seg.control_net_wrapper))
         return batched_segments
 
 
@@ -529,7 +531,19 @@ class UltralyticsBatchDetector(IO.ComfyNode):
 
     @classmethod
     def execute(cls, *args) -> IO.NodeOutput:
-        image, model_name, model_preference, confidence_threshold, dilation, crop_factor, drop_size, retry_attempts, retry_mode, retry_step, allowed_segments = args
+        (
+            image,
+            model_name,
+            model_preference,
+            confidence_threshold,
+            dilation,
+            crop_factor,
+            drop_size,
+            retry_attempts,
+            retry_mode,
+            retry_step,
+            allowed_segments,
+        ) = args
         if YOLO is None:
             raise RuntimeError("The 'ultralytics' package is required for this node. Please install it to continue.")
         if image is None:
@@ -769,7 +783,11 @@ class DetailerForEachBatch(IO.ComfyNode):
 
         raw_batch = [batch_segs] if isinstance(batch_segs, tuple) else batch_segs if isinstance(batch_segs, list) else []
         normalized_batch_segs = [
-            _sanitize_segs(raw_batch[index], (UltralyticsDetector._extract_resolution(sample), [])) if index < len(raw_batch) else (UltralyticsDetector._extract_resolution(sample), [])
+            (
+                _sanitize_segs(raw_batch[index], (UltralyticsDetector._extract_resolution(sample), []))
+                if index < len(raw_batch)
+                else (UltralyticsDetector._extract_resolution(sample), [])
+            )
             for index, sample in enumerate(samples)
         ]
 

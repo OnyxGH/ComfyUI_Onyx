@@ -15,7 +15,7 @@ from ..lib.color_correction import (
     tensor2pil,
     wavelet_color_fix,
 )
-from ..lib.bundle import BundleType, update_bundle
+from ..lib.bundle import BundleType, normalize_bundle, update_bundle
 from ..lib.nodes import get_category, get_node_id
 
 CATEGORY = get_category("image")
@@ -34,14 +34,6 @@ _MATCH_COLOR_METHODS = [
     "hm-mkl-hm",
 ]
 _COLOR_MATCHER_METHODS = {"mkl", "hm", "reinhard", "mvgd", "hm-mvgd-hm", "hm-mkl-hm"}
-
-
-def _normalize_bundle(bundle) -> dict:
-    if isinstance(bundle, tuple) and bundle:
-        bundle = bundle[0]
-    if not isinstance(bundle, dict):
-        raise ValueError("Expected a bundle dictionary.")
-    return dict(bundle)
 
 
 def _resolve_reference_image(image_ref: torch.Tensor, batch_size: int, index: int) -> torch.Tensor:
@@ -190,8 +182,8 @@ class MatchColorBundle(IO.ComfyNode):
 
     @classmethod
     def execute(cls, bundle_ref, bundle_target, method) -> IO.NodeOutput:
-        reference_bundle = _normalize_bundle(bundle_ref)
-        target_bundle = _normalize_bundle(bundle_target)
+        reference_bundle = normalize_bundle(bundle_ref)
+        target_bundle = normalize_bundle(bundle_target)
 
         reference_image = reference_bundle.get("image")
         target_image = target_bundle.get("image")

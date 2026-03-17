@@ -18,7 +18,5 @@ def get_node_id(node: NodeNameSource) -> str:
 
 def get_category(*parts: str) -> str:
     normalized_parts = [BASE_CATEGORY]
-    normalized_parts.extend(
-        part.strip(" /") for part in parts if part and part.strip(" /")
-    )
+    normalized_parts.extend(part.strip(" /") for part in parts if part and part.strip(" /"))
     return "/".join(normalized_parts)

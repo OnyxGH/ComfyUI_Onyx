@@ -115,7 +115,7 @@ class Options(IO.ComfyNode):
 
         if not "clip" in normalized_bundle:
             raise ValueError("Bundle must contain a CLIP model to encode prompts.")
-        
+
         clip = normalized_bundle["clip"]
         tokens_pos = clip.tokenize(positive)
         tokens_neg = clip.tokenize(negative)

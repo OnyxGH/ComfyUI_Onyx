@@ -62,7 +62,9 @@ def _empty_result(img_pil: Image.Image, background: str, background_color: str) 
     return result_image, empty_mask, _mask_rgb_from_tensor(empty_mask)
 
 
-def _select_masks(processor, img_tensor: torch.Tensor, prompt: str, confidence_threshold: float, max_segments: int, segment_pick: int) -> tuple[Image.Image, torch.Tensor, torch.Tensor]:
+def _select_masks(
+    processor, img_tensor: torch.Tensor, prompt: str, confidence_threshold: float, max_segments: int, segment_pick: int
+) -> tuple[Image.Image, torch.Tensor, torch.Tensor]:
     img_pil = tensor2pil(img_tensor)
     state = processor.set_image(img_pil)
     processor.reset_all_prompts(state)
@@ -101,13 +103,15 @@ def _select_masks(processor, img_tensor: torch.Tensor, prompt: str, confidence_t
         selected_index = segment_pick - 1
         if selected_index >= masks.shape[0]:
             return img_pil, torch.zeros((0, img_pil.height, img_pil.width), dtype=torch.float32), torch.zeros((0,), dtype=torch.float32)
-        masks = masks[selected_index:selected_index + 1]
-        scores = scores[selected_index:selected_index + 1]
+        masks = masks[selected_index : selected_index + 1]
+        scores = scores[selected_index : selected_index + 1]
 
     return img_pil, masks, scores
 
 
-def _compose_result(img_pil: Image.Image, mask_tensor: torch.Tensor, background: str, background_color: str, invert_output: bool, mask_blur: int, mask_offset: int) -> tuple[Image.Image, torch.Tensor, torch.Tensor]:
+def _compose_result(
+    img_pil: Image.Image, mask_tensor: torch.Tensor, background: str, background_color: str, invert_output: bool, mask_blur: int, mask_offset: int
+) -> tuple[Image.Image, torch.Tensor, torch.Tensor]:
     if mask_tensor.ndim == 3:
         mask_tensor = mask_tensor.squeeze(0)
     mask_array = (mask_tensor.clamp(0, 1).cpu().numpy() * 255).astype(np.uint8)
@@ -118,7 +122,9 @@ def _compose_result(img_pil: Image.Image, mask_tensor: torch.Tensor, background:
     return result_image, processed_mask, _mask_rgb_from_tensor(processed_mask)
 
 
-def _collect_segmentation_data(sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, confidence_threshold: float, max_segments: int, segment_pick: int = 0) -> list[tuple[torch.Tensor, Image.Image, torch.Tensor, torch.Tensor]]:
+def _collect_segmentation_data(
+    sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, confidence_threshold: float, max_segments: int, segment_pick: int = 0
+) -> list[tuple[torch.Tensor, Image.Image, torch.Tensor, torch.Tensor]]:
     images = image.unsqueeze(0) if image.ndim == 3 else image
     collected: list[tuple[torch.Tensor, Image.Image, torch.Tensor, torch.Tensor]] = []
     autocast_device = comfy.model_management.get_autocast_device(sam3_model.device)
@@ -132,7 +138,15 @@ def _collect_segmentation_data(sam3_model: Sam3Runtime, image: torch.Tensor, pro
     return collected
 
 
-def _render_segmentation_outputs(collected, output_mode: str, mask_blur: int = 0, mask_offset: int = 0, invert_output: bool = False, background: str = "Alpha", background_color: str = "#222222") -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def _render_segmentation_outputs(
+    collected,
+    output_mode: str,
+    mask_blur: int = 0,
+    mask_offset: int = 0,
+    invert_output: bool = False,
+    background: str = "Alpha",
+    background_color: str = "#222222",
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     output_mode = (output_mode or "Merged").strip()
     result_images: list[torch.Tensor] = []
     result_masks: list[torch.Tensor] = []
@@ -150,7 +164,9 @@ def _render_segmentation_outputs(collected, output_mode: str, mask_blur: int = 0
         if masks.shape[0] == 0:
             result_image, result_mask, mask_rgb = _empty_result(img_pil, background, background_color)
         else:
-            result_image, result_mask, mask_rgb = _compose_result(img_pil, masks.amax(dim=0), background, background_color, invert_output, mask_blur, mask_offset)
+            result_image, result_mask, mask_rgb = _compose_result(
+                img_pil, masks.amax(dim=0), background, background_color, invert_output, mask_blur, mask_offset
+            )
 
         result_images.append(pil2tensor(result_image))
         result_masks.append(result_mask)
@@ -166,7 +182,20 @@ def _render_segmentation_outputs(collected, output_mode: str, mask_blur: int = 0
     return torch.cat(result_images, dim=0), torch.cat(result_masks, dim=0), torch.cat(result_mask_images, dim=0)
 
 
-def _run_segmentation(sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, output_mode: str, confidence_threshold: float, max_segments: int, segment_pick: int = 0, mask_blur: int = 0, mask_offset: int = 0, invert_output: bool = False, background: str = "Alpha", background_color: str = "#222222") -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def _run_segmentation(
+    sam3_model: Sam3Runtime,
+    image: torch.Tensor,
+    prompt: str,
+    output_mode: str,
+    confidence_threshold: float,
+    max_segments: int,
+    segment_pick: int = 0,
+    mask_blur: int = 0,
+    mask_offset: int = 0,
+    invert_output: bool = False,
+    background: str = "Alpha",
+    background_color: str = "#222222",
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     collected = _collect_segmentation_data(sam3_model, image, prompt, confidence_threshold, max_segments, segment_pick)
     return _render_segmentation_outputs(collected, output_mode, mask_blur, mask_offset, invert_output, background, background_color)
 
@@ -204,7 +233,9 @@ def _build_seg(image_tensor: torch.Tensor, mask_tensor: torch.Tensor, confidence
     return SEG(cropped_image, cropped_mask, float(confidence), crop_region, bbox, label)
 
 
-def _build_segments_for_sample(image_tensor: torch.Tensor, masks: torch.Tensor, scores: torch.Tensor, output_mode: str, label: str | None, crop_factor: float, dilation: int) -> list[SEG]:
+def _build_segments_for_sample(
+    image_tensor: torch.Tensor, masks: torch.Tensor, scores: torch.Tensor, output_mode: str, label: str | None, crop_factor: float, dilation: int
+) -> list[SEG]:
     output_mode = (output_mode or "Merged").strip()
     if masks.shape[0] == 0:
         return []
@@ -267,7 +298,10 @@ def _build_segs_payload(collected, output_mode: str, label: str | None, crop_fac
 
 
 def _build_batch_segs_payload(collected, output_mode: str, label: str | None, crop_factor: float, dilation: int) -> list[tuple[tuple[int, int], list[SEG]]]:
-    return [(_extract_resolution(sample), _build_segments_for_sample(sample, masks, scores, output_mode, label, crop_factor, dilation)) for sample, _, masks, scores in collected]
+    return [
+        (_extract_resolution(sample), _build_segments_for_sample(sample, masks, scores, output_mode, label, crop_factor, dilation))
+        for sample, _, masks, scores in collected
+    ]
 
 
 class SAM3ModelLoader(IO.ComfyNode):
@@ -322,8 +356,37 @@ class SAM3SegmentRMBG(IO.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, output_mode: str, confidence_threshold: float, max_segments: int, segment_pick: int, mask_blur: int, mask_offset: int, invert_output: bool, background: str, background_color: str) -> IO.NodeOutput:
-        return IO.NodeOutput(*_run_segmentation(sam3_model, image, prompt, output_mode, confidence_threshold, max_segments, segment_pick, mask_blur, mask_offset, invert_output, background, background_color))
+    def execute(
+        cls,
+        sam3_model: Sam3Runtime,
+        image: torch.Tensor,
+        prompt: str,
+        output_mode: str,
+        confidence_threshold: float,
+        max_segments: int,
+        segment_pick: int,
+        mask_blur: int,
+        mask_offset: int,
+        invert_output: bool,
+        background: str,
+        background_color: str,
+    ) -> IO.NodeOutput:
+        return IO.NodeOutput(
+            *_run_segmentation(
+                sam3_model,
+                image,
+                prompt,
+                output_mode,
+                confidence_threshold,
+                max_segments,
+                segment_pick,
+                mask_blur,
+                mask_offset,
+                invert_output,
+                background,
+                background_color,
+            )
+        )
 
 
 class SAM3Segment(IO.ComfyNode):
@@ -351,7 +414,9 @@ class SAM3Segment(IO.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, output_mode: str, confidence_threshold: float, max_segments: int) -> IO.NodeOutput:
+    def execute(
+        cls, sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, output_mode: str, confidence_threshold: float, max_segments: int
+    ) -> IO.NodeOutput:
         return IO.NodeOutput(*_run_segmentation(sam3_model, image, prompt, output_mode, confidence_threshold, max_segments))
 
 
@@ -381,7 +446,17 @@ class SAM3SegmentSEGS(IO.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, output_mode: str, confidence_threshold: float, dilation: int, crop_factor: float, max_segments: int) -> IO.NodeOutput:
+    def execute(
+        cls,
+        sam3_model: Sam3Runtime,
+        image: torch.Tensor,
+        prompt: str,
+        output_mode: str,
+        confidence_threshold: float,
+        dilation: int,
+        crop_factor: float,
+        max_segments: int,
+    ) -> IO.NodeOutput:
         collected = _collect_segmentation_data(sam3_model, image, prompt, confidence_threshold, max_segments)
         images, _, _ = _render_segmentation_outputs(collected, output_mode)
         segs_payload = _build_segs_payload(collected, output_mode, prompt.strip() or None, max(1.0, float(crop_factor)), max(0, int(dilation)))
@@ -414,7 +489,17 @@ class SAM3SegmentSEGSBatch(IO.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, sam3_model: Sam3Runtime, image: torch.Tensor, prompt: str, output_mode: str, confidence_threshold: float, dilation: int, crop_factor: float, max_segments: int) -> IO.NodeOutput:
+    def execute(
+        cls,
+        sam3_model: Sam3Runtime,
+        image: torch.Tensor,
+        prompt: str,
+        output_mode: str,
+        confidence_threshold: float,
+        dilation: int,
+        crop_factor: float,
+        max_segments: int,
+    ) -> IO.NodeOutput:
         collected = _collect_segmentation_data(sam3_model, image, prompt, confidence_threshold, max_segments)
         images, _, _ = _render_segmentation_outputs(collected, output_mode)
         batch_segs_payload = _build_batch_segs_payload(collected, output_mode, prompt.strip() or None, max(1.0, float(crop_factor)), max(0, int(dilation)))

@@ -17,19 +17,11 @@ from comfy_extras.nodes_model_merging import (
 
 from nodes import VAELoader
 
-from ...lib.bundle import create_bundle, update_bundle
+from ...lib.bundle import create_bundle, normalize_bundle, update_bundle
 from ...lib.nodes import get_category, get_node_id
 from ...lib.io import ComboTypeInput
 
 CATEGORY = get_category("model/merging")
-
-
-def _normalize_bundle(bundle: Any) -> dict[str, Any]:
-    if isinstance(bundle, tuple) and bundle:
-        bundle = bundle[0]
-    if isinstance(bundle, dict):
-        return dict(bundle)
-    return {}
 
 
 def _inherit_input() -> IO.Input:
@@ -42,8 +34,8 @@ def _inherit_input() -> IO.Input:
 
 
 def _merge_base_bundle(bundle_a, bundle_b, inherit_from) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
-    left_bundle = _normalize_bundle(bundle_a)
-    right_bundle = _normalize_bundle(bundle_b)
+    left_bundle = normalize_bundle(bundle_a)
+    right_bundle = normalize_bundle(bundle_b)
     if inherit_from == "bundle_a":
         merged_bundle = update_bundle(left_bundle)
     elif inherit_from == "bundle_b":
@@ -55,7 +47,7 @@ def _merge_base_bundle(bundle_a, bundle_b, inherit_from) -> tuple[dict[str, Any]
 
 
 def _require_bundle_value(bundle: Any, key: str, label: str) -> Any:
-    value = _normalize_bundle(bundle).get(key)
+    value = normalize_bundle(bundle).get(key)
     if value is None:
         raise ValueError(f"{label} requires the input bundle to include {key}.")
     return value
@@ -157,7 +149,7 @@ class CheckpointSaveBundle(IO.ComfyNode):
 
     @classmethod
     def execute(cls, bundle, filename_prefix, prompt=None, extra_pnginfo=None) -> IO.NodeOutput:
-        normalized_bundle = _normalize_bundle(bundle)
+        normalized_bundle = normalize_bundle(bundle)
         model = _require_bundle_value(normalized_bundle, "model", "Checkpoint Save (Bundle)")
         clip = _require_bundle_value(normalized_bundle, "clip", "Checkpoint Save (Bundle)")
         vae = _require_bundle_value(normalized_bundle, "vae", "Checkpoint Save (Bundle)")

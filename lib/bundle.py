@@ -79,12 +79,8 @@ def _typed_field(
     return BundleField(
         key=key,
         output_id=output_id,
-        input_factory=lambda: io_type.Input(
-            key, optional=True, **resolved_input_kwargs
-        ),
-        output_factory=lambda: io_type.Output(
-            output_id, display_name=output_id, **resolved_output_kwargs
-        ),
+        input_factory=lambda: io_type.Input(key, optional=True, **resolved_input_kwargs),
+        output_factory=lambda: io_type.Output(output_id, display_name=output_id, **resolved_output_kwargs),
     )
 
 
@@ -104,9 +100,7 @@ def _combo_field(
             optional=True,
             extra_dict={"forceInput": True} if force_input else None,
         ),
-        output_factory=lambda: ComboTypeOutput(
-            options_provider, output_id, display_name=output_id
-        ),
+        output_factory=lambda: ComboTypeOutput(options_provider, output_id, display_name=output_id),
     )
 
 
@@ -126,25 +120,13 @@ FIELD_DEFINITIONS: dict[str, BundleField] = {
     "seed": _typed_field("seed", "SEED", IO.Int, input_kwargs={"force_input": True}),
     "steps": _typed_field("steps", "STEPS", IO.Int, input_kwargs={"force_input": True}),
     "cfg": _typed_field("cfg", "CFG", IO.Float, input_kwargs={"force_input": True}),
-    "denoise": _typed_field(
-        "denoise", "DENOISE", IO.Float, input_kwargs={"force_input": True}
-    ),
-    "start_at_step": _typed_field(
-        "start_at_step", "START_AT_STEP", IO.Int, input_kwargs={"force_input": True}
-    ),
-    "end_at_step": _typed_field(
-        "end_at_step", "END_AT_STEP", IO.Int, input_kwargs={"force_input": True}
-    ),
+    "denoise": _typed_field("denoise", "DENOISE", IO.Float, input_kwargs={"force_input": True}),
+    "start_at_step": _typed_field("start_at_step", "START_AT_STEP", IO.Int, input_kwargs={"force_input": True}),
+    "end_at_step": _typed_field("end_at_step", "END_AT_STEP", IO.Int, input_kwargs={"force_input": True}),
     "width": _typed_field("width", "WIDTH", IO.Int, input_kwargs={"force_input": True}),
-    "height": _typed_field(
-        "height", "HEIGHT", IO.Int, input_kwargs={"force_input": True}
-    ),
-    "batch_size": _typed_field(
-        "batch_size", "BATCH_SIZE", IO.Int, input_kwargs={"force_input": True}
-    ),
-    "scale_factor": _typed_field(
-        "scale_factor", "SCALE_FACTOR", IO.Float, input_kwargs={"force_input": True}
-    ),
+    "height": _typed_field("height", "HEIGHT", IO.Int, input_kwargs={"force_input": True}),
+    "batch_size": _typed_field("batch_size", "BATCH_SIZE", IO.Int, input_kwargs={"force_input": True}),
+    "scale_factor": _typed_field("scale_factor", "SCALE_FACTOR", IO.Float, input_kwargs={"force_input": True}),
     "positive_prompt": _typed_field(
         "positive_prompt",
         "POSITIVE_PROMPT",
@@ -158,9 +140,7 @@ FIELD_DEFINITIONS: dict[str, BundleField] = {
         input_kwargs={"multiline": True},
     ),
     "add_noise": _typed_field("add_noise", "ADD_NOISE", IO.Boolean),
-    "return_with_leftover_noise": _typed_field(
-        "return_with_leftover_noise", "RETURN_WITH_LEFTOVER_NOISE", IO.Boolean
-    ),
+    "return_with_leftover_noise": _typed_field("return_with_leftover_noise", "RETURN_WITH_LEFTOVER_NOISE", IO.Boolean),
     "noise": _typed_field("noise", "NOISE", IO.Noise),
     "guider": _typed_field("guider", "GUIDER", IO.Guider),
     "sampler": _typed_field("sampler", "SAMPLER", IO.Sampler),
@@ -173,9 +153,7 @@ FIELD_DEFINITIONS: dict[str, BundleField] = {
     ),
     "sampler_name": _combo_field("sampler_name", "SAMPLER_NAME", _get_sampler_names),
     "scheduler": _combo_field("scheduler", "SCHEDULER", _get_scheduler_names),
-    "upscale_model": _combo_field(
-        "upscale_model", "UPSCALE_MODEL", lambda: _get_model_list("upscale_models")
-    ),
+    "upscale_model": _combo_field("upscale_model", "UPSCALE_MODEL", lambda: _get_model_list("upscale_models")),
     "any_a": _typed_field("any_a", "ANY_A", IO.AnyType),
     "any_b": _typed_field("any_b", "ANY_B", IO.AnyType),
     "any_c": _typed_field("any_c", "ANY_C", IO.AnyType),
@@ -184,12 +162,8 @@ FIELD_DEFINITIONS: dict[str, BundleField] = {
     "segs": _typed_field("segs", "SEGS", IO.Custom("SEGS")),
     "batch_segs": _typed_field("batch_segs", "BATCH_SEGS", IO.Custom("BATCH_SEGS")),
     "sam3_model": _typed_field("sam3_model", "SAM3_MODEL", IO.Custom("SAM3_MODEL")),
-    "bbox_detector": _typed_field(
-        "bbox_detector", "BBOX_DETECTOR", IO.Custom("BBOX_DETECTOR")
-    ),
-    "segm_detector": _typed_field(
-        "segm_detector", "SEGM_DETECTOR", IO.Custom("SEGM_DETECTOR")
-    ),
+    "bbox_detector": _typed_field("bbox_detector", "BBOX_DETECTOR", IO.Custom("BBOX_DETECTOR")),
+    "segm_detector": _typed_field("segm_detector", "SEGM_DETECTOR", IO.Custom("SEGM_DETECTOR")),
 }
 
 
@@ -305,7 +279,7 @@ BUNDLE_NODE_SPECS: tuple[BundleNodeSpec, ...] = (
 )
 
 
-def _normalize_bundle(bundle: Any) -> dict[str, Any]:
+def normalize_bundle(bundle: Any) -> dict[str, Any]:
     if isinstance(bundle, tuple) and bundle:
         bundle = bundle[0]
     if isinstance(bundle, dict):
@@ -314,7 +288,7 @@ def _normalize_bundle(bundle: Any) -> dict[str, Any]:
 
 
 def _merge_bundle(base_bundle: Any, values: dict[str, Any]) -> dict[str, Any]:
-    merged = _normalize_bundle(base_bundle)
+    merged = normalize_bundle(base_bundle)
     for key, value in values.items():
         if value is not None:
             merged[key] = value
@@ -343,15 +317,11 @@ def _build_outputs(spec: BundleNodeSpec) -> list[IO.Output]:
     ]
 
 
-def _build_output_values(
-    spec: BundleNodeSpec, bundle: dict[str, Any]
-) -> tuple[Any, ...]:
+def _build_output_values(spec: BundleNodeSpec, bundle: dict[str, Any]) -> tuple[Any, ...]:
     return (bundle, *[bundle.get(key) for key in spec.field_keys])
 
 
-def create_bundle_node(
-    spec: BundleNodeSpec, category: str = CATEGORY
-) -> type[IO.ComfyNode]:
+def create_bundle_node(spec: BundleNodeSpec, category: str = CATEGORY) -> type[IO.ComfyNode]:
     schema = IO.Schema(
         node_id=get_node_id(spec.class_name),
         display_name=spec.display_name,

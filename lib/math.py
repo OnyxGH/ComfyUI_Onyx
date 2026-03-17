@@ -97,9 +97,7 @@ def safe_eval(source: str, variables: dict[str, float]) -> float:
 
     for statement in module.body:
         if isinstance(statement, ast.Assign):
-            if len(statement.targets) != 1 or not isinstance(
-                statement.targets[0], ast.Name
-            ):
+            if len(statement.targets) != 1 or not isinstance(statement.targets[0], ast.Name):
                 raise ValueError("Only simple variable assignments are allowed")
             value = float(_eval_ast_node(statement.value, scope))
             scope[statement.targets[0].id] = value
