@@ -11,7 +11,7 @@ import comfy.model_management
 from comfy_api.latest import IO
 
 from ..lib.nodes import get_category, get_node_id
-from ..lib.images import pil2tensor, tensor2pil
+from ..lib.image import pil2tensor, tensor2pil
 from ..lib.sam3 import Sam3Runtime, get_sam3_model_options, load_sam3_runtime
 from ..lib.segmentation import SEG, dilate_mask, make_crop_region
 

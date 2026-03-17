@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from comfy_api.latest import IO
+
 from torch.nn import functional as F
+from comfy_api.latest import IO, UI
 
 from ..lib.color_correction import (
     adain_color_fix,
@@ -34,6 +35,23 @@ _MATCH_COLOR_METHODS = [
     "hm-mkl-hm",
 ]
 _COLOR_MATCHER_METHODS = {"mkl", "hm", "reinhard", "mvgd", "hm-mvgd-hm", "hm-mkl-hm"}
+
+
+def _output_image(image: torch.Tensor, mode: str, filename_prefix: str, cls: type[IO.ComfyNode]) -> IO.NodeOutput:
+    if mode == "preview_only":
+        return IO.NodeOutput(ui=UI.PreviewImage(image, cls=cls))
+    elif mode == "save":
+        return IO.NodeOutput(ui=UI.ImageSaveHelper.get_save_images_ui(images=image, filename_prefix=filename_prefix, cls=cls))
+    else:
+        raise ValueError(f"Unsupported mode for outputting image: {mode}")
+
+
+def _output_image_bundle(bundle, mode: str, filename_prefix: str, cls: type[IO.ComfyNode]) -> IO.NodeOutput:
+    normalized_bundle = normalize_bundle(bundle)
+    if "image" not in normalized_bundle:
+        raise ValueError("The bundle must include an image for output.")
+    image = normalized_bundle["image"]
+    return _output_image(image, mode, filename_prefix, cls=cls)
 
 
 def _resolve_reference_image(image_ref: torch.Tensor, batch_size: int, index: int) -> torch.Tensor:
@@ -139,6 +157,119 @@ def _match_color(image_ref: torch.Tensor, image_target: torch.Tensor, method: st
     raise ValueError(f"Unsupported Match Color method: {method}")
 
 
+class SaveImageBundle(IO.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> IO.Schema:
+        return IO.Schema(
+            node_id=get_node_id(cls),
+            display_name="Save Image (Bundle)",
+            category=CATEGORY,
+            description="Saves the image from a bundle to your ComfyUI output directory.",
+            search_aliases=["save image bundle", "bundle save image", "save image"],
+            inputs=[
+                BundleType.Input("bundle"),
+                IO.String.Input(
+                    "filename_prefix",
+                    default="ComfyUI",
+                    tooltip="The prefix for the file to save. This may include formatting information such as %date:yyyy-MM-dd% or %Empty Latent Image.width% to include values from nodes.",
+                ),
+            ],
+            outputs=[],
+            is_output_node=True,
+            hidden=[IO.Hidden.prompt, IO.Hidden.extra_pnginfo],
+            essentials_category="Basics",
+        )
+
+    @classmethod
+    def execute(cls, bundle, filename_prefix="ComfyUI") -> IO.NodeOutput:
+        return _output_image_bundle(bundle, mode="save", filename_prefix=filename_prefix, cls=cls)
+
+
+class PreviewImageBundle(IO.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> IO.Schema:
+        return IO.Schema(
+            node_id=get_node_id(cls),
+            display_name="Preview Image (Bundle)",
+            category=CATEGORY,
+            description="Previews the image from a bundle.",
+            search_aliases=["preview image bundle", "bundle preview image", "preview image"],
+            inputs=[
+                BundleType.Input("bundle"),
+            ],
+            outputs=[],
+            is_output_node=True,
+            hidden=[IO.Hidden.prompt, IO.Hidden.extra_pnginfo],
+            essentials_category="Basics",
+        )
+
+    @classmethod
+    def execute(cls, bundle) -> IO.NodeOutput:
+        return _output_image_bundle(bundle, mode="preview_only", filename_prefix="ComfyUI", cls=cls)
+
+
+class ImageOutput(IO.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> IO.Schema:
+        return IO.Schema(
+            node_id=get_node_id(cls),
+            display_name="Image Output",
+            category=CATEGORY,
+            description="Outputs an image with options to preview or save.",
+            search_aliases=["image output", "output image", "preview image", "save image"],
+            inputs=[
+                IO.Image.Input("image"),
+                IO.DynamicCombo.Input(
+                    "mode",
+                    options=[
+                        IO.DynamicCombo.Option("preview_only", []),
+                        IO.DynamicCombo.Option("save", [IO.String.Input("filename_prefix", default="ComfyUI")]),
+                    ],
+                ),
+            ],
+            outputs=[],
+            is_output_node=True,
+            hidden=[IO.Hidden.prompt, IO.Hidden.extra_pnginfo],
+            essentials_category="Basics",
+        )
+
+    @classmethod
+    def execute(cls, image, mode) -> IO.NodeOutput:
+        filename_prefix = mode["filename_prefix"] if mode["mode"] == "save" else "ComfyUI"
+        return _output_image(image, mode=mode["mode"], filename_prefix=filename_prefix, cls=cls)
+
+
+class ImageOutputBundle(IO.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> IO.Schema:
+        return IO.Schema(
+            node_id=get_node_id(cls),
+            display_name="Image Output (Bundle)",
+            category=CATEGORY,
+            description="Outputs the image from a bundle with options to preview or save.",
+            search_aliases=["image output bundle", "output image bundle", "preview image bundle", "save image bundle"],
+            inputs=[
+                BundleType.Input("bundle"),
+                IO.DynamicCombo.Input(
+                    "mode",
+                    options=[
+                        IO.DynamicCombo.Option("preview_only", []),
+                        IO.DynamicCombo.Option("save", [IO.String.Input("filename_prefix", default="ComfyUI")]),
+                    ],
+                ),
+            ],
+            outputs=[],
+            is_output_node=True,
+            hidden=[IO.Hidden.prompt, IO.Hidden.extra_pnginfo],
+            essentials_category="Basics",
+        )
+
+    @classmethod
+    def execute(cls, bundle, mode) -> IO.NodeOutput:
+        filename_prefix = mode["filename_prefix"] if mode["mode"] == "save" else "ComfyUI"
+        return _output_image_bundle(bundle, mode=mode["mode"], filename_prefix=filename_prefix, cls=cls)
+
+
 class MatchColor(IO.ComfyNode):
     @classmethod
     def define_schema(cls) -> IO.Schema:
@@ -196,4 +327,4 @@ class MatchColorBundle(IO.ComfyNode):
         return IO.NodeOutput(update_bundle(target_bundle, image=matched_image))
 
 
-IMAGE_NODES: list[type[IO.ComfyNode]] = [MatchColor, MatchColorBundle]
+IMAGE_NODES: list[type[IO.ComfyNode]] = [SaveImageBundle, PreviewImageBundle, ImageOutput, ImageOutputBundle, MatchColor, MatchColorBundle]

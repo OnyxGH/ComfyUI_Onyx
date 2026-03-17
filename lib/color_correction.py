@@ -10,7 +10,7 @@ from PIL import Image
 from torch import Tensor
 from torch.nn import functional as F
 
-from .images import pil2tensor, tensor2pil
+from .image import pil2tensor, tensor2pil
 
 _CCM_CHUNK_SIZE = 262144
 _RGB_TO_XYZ = np.array(
