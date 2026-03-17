@@ -290,4 +290,4 @@ class MatchColorBundle(IO.ComfyNode):
         return IO.NodeOutput(update_bundle(target_bundle, image=matched_image))
 
 
-IMAGE_NODES: list[type[IO.ComfyNode]] = [SaveImageBundle, PreviewImageBundle, ImageOutput, ImageOutputBundle, MatchColor, MatchColorBundle]
+IMAGE_NODES: list[type[IO.ComfyNode]] = [SaveImageAdvanced, SaveImageBundle, PreviewImageBundle, ImageOutput, ImageOutputBundle, MatchColor, MatchColorBundle]

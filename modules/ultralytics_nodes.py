@@ -32,7 +32,6 @@ from ..helpers.ultralytics_detection import (
 )
 from ..lib.model_paths import add_model_folder_path_ext
 
-
 CATEGORY = get_category("ultralytics")
 
 add_model_folder_path_ext(
@@ -131,6 +130,7 @@ class UltralyticsDetector(IO.ComfyNode):
                 detected_segments.extend(batchify_segments_for_sample(samples, sample_segments, sample_index))
 
         return IO.NodeOutput(image_list, (extract_resolution(samples[0]), detected_segments))
+
 
 class UltralyticsBatchDetector(IO.ComfyNode):
     @classmethod
@@ -401,11 +401,7 @@ class DetailerForEachBatch(IO.ComfyNode):
 
         raw_batch = [batch_segs] if isinstance(batch_segs, tuple) else batch_segs if isinstance(batch_segs, list) else []
         normalized_batch_segs = [
-            (
-                sanitize_segs(raw_batch[index], (extract_resolution(sample), []))
-                if index < len(raw_batch)
-                else (extract_resolution(sample), [])
-            )
+            (sanitize_segs(raw_batch[index], (extract_resolution(sample), [])) if index < len(raw_batch) else (extract_resolution(sample), []))
             for index, sample in enumerate(samples)
         ]
 

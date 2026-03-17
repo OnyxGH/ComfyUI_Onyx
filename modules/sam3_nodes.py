@@ -7,6 +7,7 @@ from comfy_api.latest import IO
 from ..helpers.nodes import get_category, get_node_id
 from ..helpers.sam3_inference import build_batch_segs_payload, build_segs_payload, collect_segmentation_data, render_segmentation_outputs, run_segmentation
 from ..lib.sam3 import Sam3Runtime, get_sam3_model_options, load_sam3_runtime
+from ..lib.bundle import BundleType, create_bundle
 
 CATEGORY = get_category("sam3")
 
@@ -30,6 +31,29 @@ class SAM3ModelLoader(IO.ComfyNode):
     @classmethod
     def execute(cls, model_name: str, device: str) -> IO.NodeOutput:
         return IO.NodeOutput(load_sam3_runtime(model_name=model_name, device_choice=device))
+
+
+class SAM3ModelLoaderBundle(IO.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> IO.Schema:
+        return IO.Schema(
+            node_id=get_node_id(cls),
+            display_name="Load SAM3 Model (Bundle)",
+            category=CATEGORY,
+            description="Loads a SAM3 checkpoint and returns a reusable SAM3 model object for segmentation nodes, inside a Bundle.",
+            search_aliases=["load sam3 model bundle", "sam3 loader bundle", "sam3 model loader bundle"],
+            inputs=[
+                IO.Combo.Input("model_name", options=get_sam3_model_options()),
+                IO.Combo.Input("device", options=["Auto", "CPU", "GPU"], default="Auto"),
+            ],
+            outputs=[BundleType.Output("BUNDLE")],
+        )
+
+    @classmethod
+    def execute(cls, model_name: str, device: str) -> IO.NodeOutput:
+        sam3_model = load_sam3_runtime(model_name=model_name, device_choice=device)
+        bundle = create_bundle(sam3_model=sam3_model)
+        return IO.NodeOutput(bundle)
 
 
 class SAM3SegmentRMBG(IO.ComfyNode):
@@ -215,6 +239,7 @@ class SAM3SegmentSEGSBatch(IO.ComfyNode):
 
 SAM3_NODES: list[type[IO.ComfyNode]] = [
     SAM3ModelLoader,
+    SAM3ModelLoaderBundle,
     SAM3Segment,
     SAM3SegmentSEGS,
     SAM3SegmentSEGSBatch,

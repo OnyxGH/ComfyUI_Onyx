@@ -5,7 +5,7 @@ from comfy_api.latest import IO
 
 from ..helpers.io import ComboTypeInput
 from ..helpers.nodes import get_category, get_node_id
-from ..lib.bundle import create_bundle
+from ..lib.bundle import BundleType, create_bundle
 
 CATEGORY = get_category("loaders")
 
@@ -28,7 +28,7 @@ class CheckpointLoaderBundle(IO.ComfyNode):
                 ),
             ],
             outputs=[
-                IO.Custom("BUNDLE").Output("BUNDLE", display_name="BUNDLE"),
+                BundleType.Output("BUNDLE", display_name="BUNDLE"),
             ],
         )
 

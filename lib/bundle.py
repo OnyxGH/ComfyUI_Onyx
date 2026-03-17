@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 import folder_paths
 
@@ -301,6 +301,13 @@ def create_bundle(**values: Any) -> dict[str, Any]:
 
 def update_bundle(bundle: Any, **values: Any) -> dict[str, Any]:
     return _merge_bundle(bundle, values)
+
+
+def merge_bundles(bundles: Iterable[Any]) -> dict[str, Any]:
+    merged: dict[str, Any] = {}
+    for bundle in bundles:
+        merged = update_bundle(merged, **normalize_bundle(bundle))
+    return merged
 
 
 def _build_inputs(spec: BundleNodeSpec) -> list[IO.Input]:
