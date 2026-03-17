@@ -205,9 +205,7 @@ def build_basic_workflow(
 def resolve_hidden_metadata(cls: type[IO.ComfyNode], prompt, extra_pnginfo) -> tuple[object | None, object | None]:
     hidden = getattr(cls, "hidden", None)
     resolved_prompt = prompt if prompt is not None else getattr(hidden, "prompt", None) if hidden is not None else None
-    resolved_extra_pnginfo = (
-        extra_pnginfo if extra_pnginfo is not None else getattr(hidden, "extra_pnginfo", None) if hidden is not None else None
-    )
+    resolved_extra_pnginfo = extra_pnginfo if extra_pnginfo is not None else getattr(hidden, "extra_pnginfo", None) if hidden is not None else None
     return resolved_prompt, resolved_extra_pnginfo
 
 
