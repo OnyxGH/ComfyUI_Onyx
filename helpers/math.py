@@ -1,5 +1,5 @@
-import math
 import ast
+import math
 
 _SAFE_EVAL_NAMESPACE = {
     "pi": math.pi,
@@ -53,7 +53,7 @@ def _eval_ast_node(n, variables: dict[str, float]):
         if isinstance(n.value, (int, float)):
             return float(n.value)
         raise ValueError("Only numeric constants are allowed")
-    if isinstance(n, ast.Num):  # legacy for <3.8
+    if isinstance(n, ast.Num):
         return float(n.n)  # type: ignore
     if isinstance(n, ast.BinOp) and isinstance(n.op, _ALLOWED_BINARY_OPS):
         left = _eval_ast_node(n.left, variables)

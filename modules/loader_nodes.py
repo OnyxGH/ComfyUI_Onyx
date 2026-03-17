@@ -3,9 +3,9 @@ import comfy.sd
 
 from comfy_api.latest import IO
 
+from ..helpers.io import ComboTypeInput
+from ..helpers.nodes import get_category, get_node_id
 from ..lib.bundle import create_bundle
-from ..lib.io import ComboTypeInput
-from ..lib.nodes import get_category, get_node_id
 
 CATEGORY = get_category("loaders")
 

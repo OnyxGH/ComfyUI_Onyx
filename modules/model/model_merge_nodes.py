@@ -17,9 +17,10 @@ from comfy_extras.nodes_model_merging import (
 
 from nodes import VAELoader
 
+from ...helpers.io import ComboTypeInput
 from ...lib.bundle import create_bundle, normalize_bundle, update_bundle
-from ...lib.nodes import get_category, get_node_id
-from ...lib.io import ComboTypeInput
+from ...helpers.model_merge import merge_checkpoints
+from ...helpers.nodes import get_category, get_node_id
 
 CATEGORY = get_category("model/merging")
 
@@ -51,12 +52,6 @@ def _require_bundle_value(bundle: Any, key: str, label: str) -> Any:
     if value is None:
         raise ValueError(f"{label} requires the input bundle to include {key}.")
     return value
-
-
-def _merge_checkpoints(model_a, model_b, clip_a, clip_b, model_ratio, clip_ratio):
-    merged_model = ModelMergeSimple().merge(model_a, model_b, model_ratio)[0]
-    merged_clip = CLIPMergeSimple().merge(clip_a, clip_b, clip_ratio)[0]
-    return merged_model, merged_clip
 
 
 # region Bundle Variants of ComfyUI Model Merging Nodes
@@ -260,7 +255,7 @@ class CheckpointMerge(IO.ComfyNode):
 
     @classmethod
     def execute(cls, model_a, model_b, clip_a, clip_b, model_ratio, clip_ratio) -> IO.NodeOutput:
-        merged_model, merged_clip = _merge_checkpoints(model_a, model_b, clip_a, clip_b, model_ratio, clip_ratio)
+        merged_model, merged_clip = merge_checkpoints(model_a, model_b, clip_a, clip_b, model_ratio, clip_ratio)
         return IO.NodeOutput(merged_model, merged_clip)
 
 
@@ -314,7 +309,7 @@ class CheckpointMergeBundle(IO.ComfyNode):
         if model_a is None or model_b is None or clip_a is None or clip_b is None:
             raise ValueError("Checkpoint Merge (Bundle) requires both input bundles to include a model and a clip.")
 
-        merged_model, merged_clip = _merge_checkpoints(model_a, model_b, clip_a, clip_b, model_ratio, clip_ratio)
+        merged_model, merged_clip = merge_checkpoints(model_a, model_b, clip_a, clip_b, model_ratio, clip_ratio)
         merged_bundle["model"] = merged_model
         merged_bundle["clip"] = merged_clip
 

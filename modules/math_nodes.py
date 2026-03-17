@@ -1,7 +1,7 @@
 from comfy_api.latest import IO
 
-from ..lib.math import safe_eval
-from ..lib.nodes import get_category, get_node_id
+from ..helpers.math import safe_eval
+from ..helpers.nodes import get_category, get_node_id
 from ..lib.constants import ALPHABET_LOWER
 
 CATEGORY = get_category("math")

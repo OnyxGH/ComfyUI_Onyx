@@ -2,7 +2,7 @@ import nodes
 
 from comfy_api.latest import IO
 
-from ..lib.nodes import get_category, get_node_id
+from ..helpers.nodes import get_category, get_node_id
 
 CATEGORY = get_category("conditioning")
 

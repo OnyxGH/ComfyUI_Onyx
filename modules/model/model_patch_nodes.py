@@ -2,7 +2,7 @@ import nodes
 
 from comfy_api.latest import IO
 
-from ...lib.nodes import get_category, get_node_id
+from ...helpers.nodes import get_category, get_node_id
 from ...lib.tiled_diffusion import (
     MultiDiffusion as MultiDiffusionImpl,
     MixtureOfDiffusers as MixtureOfDiffusersImpl,

@@ -9,8 +9,8 @@ import comfy.samplers
 
 from comfy_api.latest import IO
 
-from .nodes import get_category, get_node_id
-from .io import ComboTypeOutput
+from ..helpers.io import ComboTypeOutput
+from ..helpers.nodes import get_category, get_node_id
 
 CATEGORY = get_category("bundle")
 
