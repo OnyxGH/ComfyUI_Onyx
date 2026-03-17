@@ -12,9 +12,9 @@ from comfy_api.latest import IO
 from .nodes import get_category, get_node_id
 from .io import ComboTypeOutput
 
-BUNDLE_TYPE = IO.Custom("BUNDLE")
 CATEGORY = get_category("bundle")
 
+BundleType = IO.Custom("BUNDLE")
 
 InputFactory = Callable[[], IO.Input]
 OutputFactory = Callable[[], IO.Output]
@@ -59,11 +59,11 @@ def _get_scheduler_names() -> list[str]:
 
 
 def _bundle_input() -> IO.Input:
-    return BUNDLE_TYPE.Input("bundle", optional=True)
+    return BundleType.Input("bundle", optional=True)
 
 
 def _bundle_output() -> IO.Output:
-    return BUNDLE_TYPE.Output("BUNDLE", display_name="BUNDLE")
+    return BundleType.Output("BUNDLE", display_name="BUNDLE")
 
 
 def _typed_field(
