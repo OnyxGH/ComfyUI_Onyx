@@ -129,7 +129,7 @@ class CheckpointSaveBundle(IO.ComfyNode):
     def define_schema(cls) -> IO.Schema:
         return IO.Schema(
             node_id=get_node_id(cls),
-            display_name="Checkpoint Save (Bundle)",
+            display_name="Save Checkpoint (Bundle)",
             category=CATEGORY,
             description="Saves the model, CLIP, and VAE from a bundle as a checkpoint.",
             search_aliases=["checkpoint save bundle", "save checkpoint bundle", "export checkpoint bundle"],
@@ -157,7 +157,7 @@ class CLIPSaveBundle(IO.ComfyNode):
     def define_schema(cls) -> IO.Schema:
         return IO.Schema(
             node_id=get_node_id(cls),
-            display_name="CLIP Save (Bundle)",
+            display_name="Save CLIP (Bundle)",
             category=CATEGORY,
             description="Saves the CLIP from a bundle.",
             search_aliases=["clip save bundle", "save clip bundle", "export clip bundle"],
@@ -182,7 +182,7 @@ class VAESaveBundle(IO.ComfyNode):
     def define_schema(cls) -> IO.Schema:
         return IO.Schema(
             node_id=get_node_id(cls),
-            display_name="VAE Save (Bundle)",
+            display_name="Save VAE (Bundle)",
             category=CATEGORY,
             description="Saves the VAE from a bundle.",
             search_aliases=["vae save bundle", "save vae bundle", "export vae bundle"],
@@ -207,7 +207,7 @@ class ModelSaveBundle(IO.ComfyNode):
     def define_schema(cls) -> IO.Schema:
         return IO.Schema(
             node_id=get_node_id(cls),
-            display_name="Model Save (Bundle)",
+            display_name="Save Model (Bundle)",
             category=CATEGORY,
             description="Saves the model from a bundle.",
             search_aliases=["model save bundle", "save model bundle", "export model bundle"],

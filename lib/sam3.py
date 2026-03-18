@@ -10,12 +10,15 @@ from typing import Any
 import comfy.model_management
 import folder_paths
 import torch
+from torch.hub import download_url_to_file
 
 from .model_paths import add_model_folder_path_ext
 
 _SAM3_ENV_VAR = "ONYX_SAM3_SRC_PATH"
 _SAM3_BPE_FILE = "bpe_simple_vocab_16e6.txt.gz"
+_SAM3_BPE_URL = "https://raw.githubusercontent.com/openai/CLIP/main/clip/bpe_simple_vocab_16e6.txt.gz"
 _DEFAULT_SAM3_MODEL = "sam3.pt"
+_DEFAULT_SAM3_MODEL_URL = "https://huggingface.co/1038lab/sam3/resolve/main/sam3.pt"
 _SAM3_CACHE: dict[tuple[str, str], "Sam3Runtime"] = {}
 _SUPPORTED_SAM3_EXTENSIONS = getattr(
     folder_paths,
@@ -101,10 +104,45 @@ def resolve_sam3_checkpoint_path(model_name: str) -> str:
     if direct_path.is_file():
         return str(direct_path)
 
+    if requested_name == _DEFAULT_SAM3_MODEL:
+        return download_default_sam3_checkpoint()
+
     raise FileNotFoundError(
         "SAM3 checkpoint not found. Place the checkpoint in "
         f"'{Path(folder_paths.models_dir) / 'sam3'}' or provide an absolute path. Tried '{requested_name}'."
     )
+
+
+def download_default_sam3_checkpoint() -> str:
+    target_dir = Path(folder_paths.models_dir) / "sam3"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_path = target_dir / _DEFAULT_SAM3_MODEL
+    if target_path.is_file():
+        return str(target_path)
+
+    try:
+        print(f"Downloading SAM3 checkpoint to '{target_path}'...")
+        download_url_to_file(_DEFAULT_SAM3_MODEL_URL, str(target_path))
+    except Exception as exc:
+        raise RuntimeError(f"Unable to download the default SAM3 checkpoint from '{_DEFAULT_SAM3_MODEL_URL}'.") from exc
+
+    return str(target_path)
+
+
+def download_default_sam3_bpe_path() -> str:
+    target_dir = Path(folder_paths.models_dir) / "sam3" / "assets"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_path = target_dir / _SAM3_BPE_FILE
+    if target_path.is_file():
+        return str(target_path)
+
+    try:
+        print(f"Downloading SAM3 tokenizer assets to '{target_path}'...")
+        download_url_to_file(_SAM3_BPE_URL, str(target_path))
+    except Exception as exc:
+        raise RuntimeError(f"Unable to download SAM3 tokenizer assets from '{_SAM3_BPE_URL}'.") from exc
+
+    return str(target_path)
 
 
 def resolve_sam3_bpe_path(sam3_package: Any | None = None) -> str:
@@ -118,11 +156,7 @@ def resolve_sam3_bpe_path(sam3_package: Any | None = None) -> str:
         if path.is_file():
             return str(path)
 
-    raise FileNotFoundError(
-        "SAM3 tokenizer assets are missing. Expected to find "
-        f"'{_SAM3_BPE_FILE}' in the installed 'sam3' package, the source tree pointed to by '{_SAM3_ENV_VAR}', "
-        f"or a real source checkout under '{Path(folder_paths.models_dir) / 'sam3'}'."
-    )
+    return download_default_sam3_bpe_path()
 
 
 def _candidate_package_dirs() -> list[Path]:
@@ -158,7 +192,7 @@ def _import_sam3_runtime():
         raise RuntimeError(
             "Unable to import the SAM3 runtime. Install the 'sam3' package, point '"
             f"{_SAM3_ENV_VAR}' at a SAM3 source checkout, or place a real SAM3 package checkout under "
-            f"'{Path(folder_paths.models_dir) / 'sam3'}'."
+            f"'{Path(folder_paths.models_dir) / 'sam3'}'. Underlying import error: {exc}"
         ) from (exc if exc is not None else last_error)
 
 

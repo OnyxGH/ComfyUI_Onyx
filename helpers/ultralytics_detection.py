@@ -6,11 +6,11 @@ from typing import Any, Dict, Optional, Sequence, Set
 import comfy.samplers
 import folder_paths
 import numpy as np
-import nodes
 import torch
 import torch.nn.functional as F
 from nodes import MAX_RESOLUTION
 
+from .impact_detailer import DetailerForEachCompat, get_scheduler_options
 from .impact_segs import extract_resolution
 from .segmentation import (
     SEG,
@@ -48,29 +48,14 @@ def load_model(model_name: str):
 
 
 def resolve_impact_detailer_class():
-    node_mappings = getattr(nodes, "NODE_CLASS_MAPPINGS", None)
-    if not isinstance(node_mappings, dict):
-        raise RuntimeError("Comfy node registry is unavailable. Ensure ComfyUI is fully initialized before using this node.")
-    detailer_cls = node_mappings.get("DetailerForEach")
-    if detailer_cls is None or not hasattr(detailer_cls, "do_detail"):
-        raise RuntimeError("Impact Pack's DetailerForEach node is required for this node. Install/enable comfyui-impact-pack.")
-    return detailer_cls
+    return DetailerForEachCompat
 
 
 def scheduler_options() -> list[str]:
-    schedulers = list(comfy.samplers.KSampler.SCHEDULERS)
     try:
-        detailer_cls = resolve_impact_detailer_class()
-        if hasattr(detailer_cls, "INPUT_TYPES"):
-            inputs = detailer_cls.INPUT_TYPES()
-            scheduler_input = inputs.get("required", {}).get("scheduler")
-            if isinstance(scheduler_input, tuple) and scheduler_input:
-                options = scheduler_input[0]
-                if isinstance(options, (list, tuple)) and options:
-                    return [str(value) for value in options]
+        return get_scheduler_options()
     except Exception:
-        pass
-    return schedulers
+        return list(comfy.samplers.KSampler.SCHEDULERS)
 
 
 def get_model_name_lookup(model) -> Dict[int, str]:

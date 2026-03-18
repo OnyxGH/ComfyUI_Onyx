@@ -212,7 +212,7 @@ class DetailerForEach(IO.ComfyNode):
             node_id=get_node_id(cls),
             display_name="Detailer (SEGS)",
             category=CATEGORY,
-            description="Runs Impact Pack's DetailerForEach on a single image with SEGS input.",
+            description="Runs a local DetailerForEach implementation that mirrors Impact Pack logic on a single image with SEGS input.",
             search_aliases=["detailer for each", "detailer segs", "impact detailer"],
             inputs=[
                 IO.Image.Input("image"),
@@ -326,7 +326,7 @@ class DetailerForEachBatch(IO.ComfyNode):
             node_id=get_node_id(cls),
             display_name="Detailer (Batch SEGS)",
             category=CATEGORY,
-            description="Runs Impact Pack's DetailerForEach across a batch using BATCH_SEGS input.",
+            description="Runs the local Impact-style DetailerForEach logic across a batch using BATCH_SEGS input.",
             search_aliases=["detailer batch segs", "batch detailer", "impact batch detailer"],
             inputs=[
                 IO.Image.Input("image"),
